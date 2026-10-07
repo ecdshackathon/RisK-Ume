@@ -123,22 +123,7 @@ export function LinkedInImportCard({ onUploadStart }: { onUploadStart: (importId
       {/* Right Column: Upload/Paste */}
       <div>
         <div className="bg-[rgba(255,255,255,0.03)] border border-[#1E3A5F] rounded-2xl overflow-hidden backdrop-blur-sm">
-          <div className="flex border-b border-[#1E3A5F]">
-            <button
-              onClick={() => setTab('upload')}
-              className={`flex-1 py-4 text-sm font-semibold transition-colors ${tab === 'upload' ? 'bg-[#2563EB]/10 text-[#60A5FA] border-b-2 border-[#2563EB]' : 'text-[#94A3B8] hover:text-white hover:bg-[rgba(255,255,255,0.02)]'}`}
-            >
-              <div className="flex items-center justify-center gap-2"><UploadCloud className="w-4 h-4" /> UPLOAD PDF</div>
-            </button>
-            <button
-              onClick={() => setTab('paste')}
-              className={`flex-1 py-4 text-sm font-semibold transition-colors ${tab === 'paste' ? 'bg-[#2563EB]/10 text-[#60A5FA] border-b-2 border-[#2563EB]' : 'text-[#94A3B8] hover:text-white hover:bg-[rgba(255,255,255,0.02)]'}`}
-            >
-              <div className="flex items-center justify-center gap-2"><ClipboardList className="w-4 h-4" /> PASTE TEXT</div>
-            </button>
-          </div>
-
-          <div className="p-8">
+          <div className="p-8 space-y-6">
             {error && (
               <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -146,50 +131,53 @@ export function LinkedInImportCard({ onUploadStart }: { onUploadStart: (importId
               </div>
             )}
 
-            {tab === 'upload' ? (
-              <div
-                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                onDragLeave={() => setIsDragging(false)}
-                onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-xl p-12 text-center transition-all ${
-                  isDragging ? 'border-[#60A5FA] bg-[#2563EB]/10' : 'border-[#1E3A5F] hover:border-[#2563EB]/50 hover:bg-[rgba(255,255,255,0.02)]'
-                }`}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+                isDragging ? 'border-[#60A5FA] bg-[#2563EB]/10' : 'border-[#1E3A5F] hover:border-[#2563EB]/50 hover:bg-[rgba(255,255,255,0.02)]'
+              }`}
+            >
+              <input
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+              />
+              <FileText className="w-8 h-8 text-[#60A5FA] mx-auto mb-3 opacity-80" />
+              <h4 className="text-base font-medium text-white mb-1">Drop your LinkedIn or GitHub PDF here</h4>
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="mt-4 px-6 py-2 bg-[#1E3A5F] hover:bg-[#2563EB] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 mx-auto inline-flex items-center gap-2"
               >
-                <input
-                  type="file"
-                  accept=".pdf"
-                  className="hidden"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                />
-                <FileText className="w-12 h-12 text-[#60A5FA] mx-auto mb-4 opacity-80" />
-                <h4 className="text-lg font-medium text-white mb-2">Drop your LinkedIn or GitHub PDF here</h4>
-                <p className="text-sm text-[#94A3B8] mb-6">PDF, up to 10MB</p>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="px-6 py-2.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mx-auto"
-                >
-                  {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</> : 'Choose file'}
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col h-[300px]">
-                <textarea
-                  value={pasteText}
-                  onChange={(e) => setPasteText(e.target.value)}
-                  placeholder="Paste your LinkedIn, GitHub, or Portfolio text here..."
-                  className="flex-1 w-full bg-[rgba(255,255,255,0.02)] border border-[#1E3A5F] rounded-xl p-4 text-sm text-white placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2563EB] resize-none mb-4"
-                />
-                <button
-                  onClick={handlePasteSubmit}
-                  disabled={uploading || !pasteText.trim()}
-                  className="w-full py-3 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Analyzing...</> : 'Analyze profile →'}
-                </button>
-              </div>
-            )}
+                {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Processing...</> : 'Browse Files'}
+              </button>
+            </div>
+
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-[#1E3A5F]"></div>
+              <span className="flex-shrink-0 mx-4 text-[#94A3B8] text-xs font-semibold uppercase tracking-wider">OR PASTE TEXT</span>
+              <div className="flex-grow border-t border-[#1E3A5F]"></div>
+            </div>
+
+            <div className="flex flex-col">
+              <textarea
+                value={pasteText}
+                onChange={(e) => setPasteText(e.target.value)}
+                placeholder="Paste your LinkedIn, GitHub, or Portfolio text here..."
+                className="w-full h-32 bg-[rgba(255,255,255,0.02)] border border-[#1E3A5F] rounded-xl p-4 text-sm text-white placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2563EB] resize-none mb-4"
+              />
+              <button
+                onClick={handlePasteSubmit}
+                disabled={uploading || !pasteText.trim()}
+                className="w-full py-3 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Analyzing...</> : 'Analyze pasted profile →'}
+              </button>
+            </div>
           </div>
         </div>
       </div>
