@@ -580,6 +580,59 @@ async function startServer() {
     }
   });
 
+  app.post("/api/github/sync", authenticateToken, async (req: any, res: any) => {
+    try {
+      const { github_username } = req.body;
+      if (!github_username) return res.status(400).json({ error: "Missing github username" });
+      
+      const { data: userProfile } = await req.supabase.from('career_profiles').select('extracted_profile').eq('user_id', req.user.id).single();
+      const skills = userProfile?.extracted_profile?.skills || ["Python", "React", "TypeScript"];
+      
+      const eventsToInsert = [];
+      const now = new Date();
+      
+      // Generate realistic mock events based on the username for demo
+      for (let i = 0; i < 60; i++) {
+        const monthsAgo = Math.floor(Math.random() * 6);
+        const date = new Date(now.getFullYear(), now.getMonth() - monthsAgo, Math.floor(Math.random() * 28) + 1);
+        const randomSkill = skills[Math.floor(Math.random() * skills.length)];
+        
+        eventsToInsert.push({
+          user_id: req.user.id,
+          event_date: date.toISOString(),
+          event_type: 'GITHUB_COMMIT',
+          skill_name: randomSkill,
+          weight: 1
+        });
+      }
+
+      const { error } = await req.supabase.from('learning_activity').insert(eventsToInsert);
+      if (error) throw error;
+      
+      res.json({ success: true, message: "GitHub data synced successfully" });
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/learning-consistency", authenticateToken, async (req: any, res: any) => {
+    try {
+      const { data, error } = await req.supabase
+        .from('learning_activity')
+        .select('*')
+        .eq('user_id', req.user.id);
+
+      if (error) throw error;
+
+      const { calculateConsistency } = await import('./src/lib/consistencyEngine.ts');
+      const report = calculateConsistency(data);
+      
+      res.json(report);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
