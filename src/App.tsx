@@ -166,7 +166,12 @@ export function MainApp() {
             </nav>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-700 hidden sm:block">{user?.name}</span>
+            <button 
+              onClick={() => setActiveTab('profile')}
+              className="text-sm font-medium text-gray-700 hidden sm:block hover:text-indigo-600 transition-colors"
+            >
+              {user?.name || 'My Profile'}
+            </button>
             <Button variant="ghost" size="sm" onClick={logout} className="text-gray-500 hover:text-red-600">
               <LogOut className="w-4 h-4" />
             </Button>
