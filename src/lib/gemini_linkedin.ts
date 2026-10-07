@@ -73,7 +73,7 @@ LinkedIn Text:
 ${text}`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-flash-latest",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -124,7 +124,7 @@ Profile:
 ${JSON.stringify(profileData, null, 2)}`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-flash-latest",
     contents: prompt,
     config: {
       responseMimeType: "application/json",

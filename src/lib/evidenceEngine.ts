@@ -41,7 +41,7 @@ export async function calculateEWRS(resumeJSON: any, portfolioJSON: any, targetR
   Output the results in strict JSON.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-flash-latest",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
