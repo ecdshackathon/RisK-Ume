@@ -107,13 +107,7 @@ export function MainApp() {
                 <UserIcon className="w-4 h-4" />
                 Profile
               </button>
-              <button 
-                onClick={() => setActiveTab('linkedin')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${activeTab === 'linkedin' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}
-              >
-                <Linkedin className="w-4 h-4" />
-                LinkedIn
-              </button>
+
               <button 
                 onClick={() => setActiveTab('career-path')}
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${activeTab === 'career-path' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}
