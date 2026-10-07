@@ -71,10 +71,10 @@ export function LinkedInTab() {
           <div>
             <h2 className="text-3xl font-bold tracking-tight text-white flex items-center gap-3">
               <span className="bg-[#2563EB] text-white p-2 rounded-lg"><Target className="w-6 h-6" /></span>
-              LinkedIn Profile Audit
+              Portfolio & GitHub Import
             </h2>
             <p className="text-[#94A3B8] mt-2">
-              Synchronize your LinkedIn presence with your career intelligence profile.
+              Synchronize your LinkedIn, GitHub, and Portfolio presence with your career intelligence profile.
             </p>
           </div>
           {view === 'audit' && (

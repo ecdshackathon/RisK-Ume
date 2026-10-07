@@ -88,9 +88,9 @@ export function LinkedInImportCard({ onUploadStart }: { onUploadStart: (importId
       {/* Left Column: Instructions */}
       <div className="space-y-8">
         <div>
-          <h3 className="text-xl font-bold text-white mb-2">Save your profile to PDF</h3>
+          <h3 className="text-xl font-bold text-white mb-2">Import your Portfolios</h3>
           <p className="text-[#94A3B8]">
-            We never scrape LinkedIn. Export your own profile and we will audit it and rewrite it into what recruiters are actively searching for.
+            Upload your exported LinkedIn PDF, or paste the text from your GitHub / personal portfolio. We use this to extract your verifiable projects for the EWRS cross-referencing.
           </p>
         </div>
 
@@ -163,7 +163,7 @@ export function LinkedInImportCard({ onUploadStart }: { onUploadStart: (importId
                   onChange={handleFileChange}
                 />
                 <FileText className="w-12 h-12 text-[#60A5FA] mx-auto mb-4 opacity-80" />
-                <h4 className="text-lg font-medium text-white mb-2">Drop your LinkedIn PDF here</h4>
+                <h4 className="text-lg font-medium text-white mb-2">Drop your LinkedIn or GitHub PDF here</h4>
                 <p className="text-sm text-[#94A3B8] mb-6">PDF, up to 10MB</p>
                 <button
                   onClick={() => fileInputRef.current?.click()}
@@ -178,7 +178,7 @@ export function LinkedInImportCard({ onUploadStart }: { onUploadStart: (importId
                 <textarea
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
-                  placeholder="Paste your LinkedIn profile text here..."
+                  placeholder="Paste your LinkedIn, GitHub, or Portfolio text here..."
                   className="flex-1 w-full bg-[rgba(255,255,255,0.02)] border border-[#1E3A5F] rounded-xl p-4 text-sm text-white placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#2563EB] resize-none mb-4"
                 />
                 <button
