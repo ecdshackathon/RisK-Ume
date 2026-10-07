@@ -194,7 +194,7 @@ export async function analyzeATS(resumeText: string, jobDescription: string): Pr
   Provide your analysis in JSON format.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.5-flash",
+    model: "gemini-3.7-flash",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -317,7 +317,7 @@ RISK SCORES (0-100, higher = more risk):
 Provide your analysis in JSON format. Be specific, data-driven, and constructive.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.5-flash",
+    model: "gemini-3.7-flash",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
