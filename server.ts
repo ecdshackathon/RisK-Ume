@@ -279,7 +279,7 @@ async function startServer() {
 
       const response = await ai.models.generateContent({
 
-        model: "gemini-3.7-flash",
+        model: "gemini-3.8-flash",
 
         contents: prompt,
 
@@ -402,6 +402,78 @@ async function startServer() {
     } catch (error: any) {
       console.error(error);
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // --- STEP 4: PORTFOLIO & DESIGN EVIDENCE ANALYZER ---
+  app.post("/api/portfolio/analyze", authenticateToken, async (req: any, res: any) => {
+    try {
+      const { portfolioUrl, claimedSkills } = req.body;
+      
+      // 1. SSRF & Security Validation (from PDF requirements)
+      if (!portfolioUrl || !portfolioUrl.startsWith('http')) {
+        return res.status(400).json({ error: "Invalid URL provided." });
+      }
+      const urlObj = new URL(portfolioUrl);
+      const forbiddenDomains = ['localhost', '127.0.0.1', '169.254', '10.0', '192.168'];
+      if (forbiddenDomains.some(d => urlObj.hostname.includes(d))) {
+        return res.status(403).json({ error: "Internal network access blocked for security." });
+      }
+
+      // 2. Fetch and Extract Text
+      const webRes = await fetch(portfolioUrl, {
+        headers: { 'User-Agent': 'Mozilla/5.0 (compatible; RiskUmeBot/1.0)' }
+      });
+      const html = await webRes.text();
+      
+      // Basic HTML stripping for the hackathon (removes tags & scripts)
+      const rawText = html
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .substring(0, 15000); // Limit context window
+
+      // 3. Gemini Analysis for Design Evidence
+      const prompt = `You are a strict UI/UX and Frontend Evaluator for 'Risk-Ume'. 
+      The student claims these design/frontend skills: ${claimedSkills || "UI/UX, Frontend"}.
+      
+      Analyze this raw text scraped from their portfolio website:
+      ---
+      ${rawText}
+      ---
+      
+      Does this portfolio actually prove their claimed ability? Look for:
+      1. Number of UI/UX projects
+      2. Deep case studies (Problem -> Solution explanations)
+      3. Mentions of Wireframes, Prototypes, or Design Systems
+      4. Links to live demos or screenshots
+
+      Return a strict JSON response matching this exact structure:
+      {
+        "portfolio_confidence_score": [Number 0-100],
+        "verified_design_skills": ["Figma", "UI/UX", "React", etc],
+        "evidence_found": [
+          "Found 3 deep case studies",
+          "Strong evidence of design systems"
+        ],
+        "missing_evidence": ["No live prototype links found"],
+        "detailed_reasoning": "A 2-sentence explanation of why they got this score."
+      }`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.8-flash",
+        contents: prompt,
+        config: { responseMimeType: "application/json" }
+      });
+      
+      const result = JSON.parse(response.text || "{}");
+
+      res.json({ success: true, analysis: result });
+
+    } catch (error: any) {
+      console.error("Portfolio Analysis Error:", error);
+      res.status(500).json({ error: "Failed to analyze portfolio. The website might be blocking automated access." });
     }
   });
 
@@ -575,59 +647,6 @@ async function startServer() {
       if (updErr) throw updErr;
       
       res.json({ success: true });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  app.post("/api/github/sync", authenticateToken, async (req: any, res: any) => {
-    try {
-      const { github_username } = req.body;
-      if (!github_username) return res.status(400).json({ error: "Missing github username" });
-      
-      const { data: userProfile } = await req.supabase.from('career_profiles').select('extracted_profile').eq('user_id', req.user.id).single();
-      const skills = userProfile?.extracted_profile?.skills || ["Python", "React", "TypeScript"];
-      
-      const eventsToInsert = [];
-      const now = new Date();
-      
-      // Generate realistic mock events based on the username for demo
-      for (let i = 0; i < 60; i++) {
-        const monthsAgo = Math.floor(Math.random() * 6);
-        const date = new Date(now.getFullYear(), now.getMonth() - monthsAgo, Math.floor(Math.random() * 28) + 1);
-        const randomSkill = skills[Math.floor(Math.random() * skills.length)];
-        
-        eventsToInsert.push({
-          user_id: req.user.id,
-          event_date: date.toISOString(),
-          event_type: 'GITHUB_COMMIT',
-          skill_name: randomSkill,
-          weight: 1
-        });
-      }
-
-      const { error } = await req.supabase.from('learning_activity').insert(eventsToInsert);
-      if (error) throw error;
-      
-      res.json({ success: true, message: "GitHub data synced successfully" });
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  });
-
-  app.get("/api/learning-consistency", authenticateToken, async (req: any, res: any) => {
-    try {
-      const { data, error } = await req.supabase
-        .from('learning_activity')
-        .select('*')
-        .eq('user_id', req.user.id);
-
-      if (error) throw error;
-
-      const { calculateConsistency } = await import('./src/lib/consistencyEngine.ts');
-      const report = calculateConsistency(data);
-      
-      res.json(report);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
     }
