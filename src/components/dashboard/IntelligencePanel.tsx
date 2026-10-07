@@ -100,12 +100,12 @@ export function IntelligencePanel({ analysis }: IntelligencePanelProps) {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <AlertCircle className="w-4 h-4 text-amber-500" />
-              Career Risks & Conflicts
+              Career Gap Assessments
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-1">Career Gap Risk</p>
+              <p className="text-sm font-medium text-gray-700 mb-1">Career Gap Flag</p>
               <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
                 {analysis.career_gap_risk}
               </Badge>
@@ -156,7 +156,7 @@ export function IntelligencePanel({ analysis }: IntelligencePanelProps) {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2 text-indigo-300">
             <Users className="w-4 h-4" />
-            Hiring Manager Risk Profiling
+            Hiring Manager Preferences
           </CardTitle>
         </CardHeader>
         <CardContent>

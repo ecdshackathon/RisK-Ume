@@ -10,15 +10,18 @@ export function DashboardTab({ onNavigate }: { onNavigate: (tab: 'risk' | 'ats')
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const [ewrsData, setEwrsData] = useState<any>(null);
+
   useEffect(() => {
     if (!token) return;
 
-    fetch('/api/dashboard', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(res => res.json())
-      .then(resData => {
-        setData(resData);
+    Promise.all([
+      fetch('/api/dashboard', { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json()),
+      fetch('/api/readiness/calculate', { headers: { Authorization: `Bearer ${token}` } }).then(res => res.json())
+    ])
+      .then(([dashRes, ewrsRes]) => {
+        setData(dashRes);
+        setEwrsData(ewrsRes);
         setLoading(false);
       })
       .catch(err => {
@@ -34,7 +37,7 @@ export function DashboardTab({ onNavigate }: { onNavigate: (tab: 'risk' | 'ats')
   const latest = data?.latestAssessment;
   const healthScore = latest?.resume_health || 0;
   const atsScore = latest?.ats_score_after || 0;
-  const riskLevel = latest ? 'Moderate' : 'Unknown';
+  const riskLevel = ewrsData?.overall_ewrs ? Math.round(ewrsData.overall_ewrs) : 'Pending';
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -106,7 +109,7 @@ export function DashboardTab({ onNavigate }: { onNavigate: (tab: 'risk' | 'ats')
           <CardContent className="p-6">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-sm font-medium text-amber-600 mb-1">Career Risk Level</p>
+                <p className="text-sm font-medium text-amber-600 mb-1">Job Readiness Score</p>
                 <h3 className="text-2xl font-bold text-gray-900 mt-2">{riskLevel}</h3>
               </div>
               <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
@@ -115,7 +118,7 @@ export function DashboardTab({ onNavigate }: { onNavigate: (tab: 'risk' | 'ats')
             </div>
             <div className="mt-4 flex items-center text-sm text-gray-600">
               <AlertCircle className="w-4 h-4 text-amber-500 mr-1" />
-              Market demand is shifting
+              Evidence-Weighted Readiness (EWRS)
             </div>
           </CardContent>
         </Card>

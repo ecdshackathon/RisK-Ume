@@ -183,10 +183,10 @@ export function MainApp() {
               <div className="text-center mb-8">
                 <ShieldAlert className="mx-auto h-12 w-12 text-indigo-600" />
                 <h2 className="mt-6 text-3xl font-extrabold text-gray-900 tracking-tight">
-                  Layoff Risk Assessment
+                  Employability Assessment
                 </h2>
                 <p className="mt-2 text-sm text-gray-600">
-                  Enter your professional details to calculate your vulnerability score.
+                  Enter your professional details to calculate your employability readiness score.
                 </p>
               </div>
 

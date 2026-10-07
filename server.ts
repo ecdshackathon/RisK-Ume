@@ -433,6 +433,35 @@ async function startServer() {
     }
   });
 
+  app.get("/api/readiness/calculate", authenticateToken, async (req: any, res: any) => {
+    try {
+      const { data: careerProf } = await req.supabase
+        .from('career_profiles')
+        .select('extracted_profile, primary_role')
+        .eq('user_id', req.user.id)
+        .single();
+      
+      const { data: linkedinProf } = await req.supabase
+        .from('linkedin_profiles')
+        .select('*')
+        .eq('user_id', req.user.id)
+        .single();
+
+      const portfolioData = linkedinProf || { projects: [], experiences: [] };
+      const resumeData = careerProf?.extracted_profile || { skills: [], work: [] };
+      const targetRole = careerProf?.primary_role || "Software Engineer";
+
+      // @ts-ignore
+      const { calculateEWRS } = await import('./src/lib/evidenceEngine.ts');
+      const report = await calculateEWRS(resumeData, portfolioData, targetRole);
+
+      res.json(report);
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // LINKEDIN API ROUTES
   app.post("/api/linkedin/upload", authenticateToken, async (req: any, res: any) => {
     try {
