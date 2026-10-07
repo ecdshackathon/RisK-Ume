@@ -18,30 +18,77 @@ export interface EWRSReport {
   roadmap_recommendations: string[];
 }
 
+// --- STEP 2: DETERMINISTIC SCORING ENGINE ---
+// Calculates score securely on the backend instead of letting Gemini guess
+function calculateDeterministicSkillScores(resumeJSON: any, portfolioJSON: any, targetRole: string) {
+  const claimedSkills: string[] = resumeJSON.skills || [];
+  const projects: any[] = portfolioJSON.projects || [];
+  
+  return claimedSkills.map(skill => {
+    const skillLower = skill.toLowerCase();
+    
+    // Find matching projects in portfolio/github
+    const matchingProjects = projects.filter(p => 
+      (p.technologies || []).some((t: string) => t.toLowerCase() === skillLower) ||
+      (p.description || "").toLowerCase().includes(skillLower)
+    );
+    
+    // Apply weights from PDF requirements
+    let projectEvidence = 0;
+    let codeEvidence = 0;
+    let recentUsage = 0;
+    let resumeEvidence = 15; // Claimed on resume = 15 points
+    let documentation = 0;
+    
+    if (matchingProjects.length > 0) {
+      projectEvidence = Math.min(30, matchingProjects.length * 10);
+      codeEvidence = 25; // Assume repo exists
+      recentUsage = 20; // Assume recent for hackathon
+      documentation = 10; 
+    }
+    
+    const final_score = projectEvidence + codeEvidence + recentUsage + resumeEvidence + documentation;
+    
+    return {
+      skill,
+      metrics: {
+        projectEvidence,
+        codeEvidence,
+        recentUsage,
+        resumeEvidence,
+        documentation
+      },
+      final_ewrs_score: final_score,
+      isVerified: final_score > 50
+    };
+  });
+}
+
 export async function calculateEWRS(resumeJSON: any, portfolioJSON: any, targetRole: string): Promise<EWRSReport> {
-  const prompt = `You are an expert technical evaluator. Calculate the Evidence-Weighted Readiness Score (EWRS) by cross-referencing the candidate's Resume claims with their actual Portfolio/LinkedIn proof of work.
+  // 1. Run the deterministic backend calculation
+  const scoredSkills = calculateDeterministicSkillScores(resumeJSON, portfolioJSON, targetRole);
+  const overallScore = scoredSkills.length > 0 
+    ? Math.round(scoredSkills.reduce((acc, s) => acc + s.final_ewrs_score, 0) / scoredSkills.length)
+    : 0;
+
+  // 2. Pass deterministic scores to Gemini for explanation generation
+  const prompt = `You are an expert technical evaluator for 'Risk-Ume'. 
+  I have mathematically calculated the deterministic Evidence-Weighted Readiness Score (EWRS) for the candidate.
   
   Target Role: ${targetRole}
+  Overall Readiness Score: ${overallScore}
   
-  RESUME CLAIMS (What they say they can do):
-  ${JSON.stringify(resumeJSON.skills || [])}
-  ${JSON.stringify(resumeJSON.work || [])}
+  DETERMINISTIC SKILL SCORES:
+  ${JSON.stringify(scoredSkills, null, 2)}
   
-  PORTFOLIO EVIDENCE (What they actually did):
-  ${JSON.stringify(portfolioJSON.projects || [])}
-  ${JSON.stringify(portfolioJSON.experiences || [])}
+  Your job is to act as the "Explainability Engine". 
+  Generate human-readable explanations ("reason" strings) for WHY they received these exact scores based on the metrics provided.
+  For unverified skills, generate actionable 'roadmap_recommendations' to help them bridge the gap.
   
-  For each technical skill, evaluate:
-  1. Claim Relevance (0-100): How relevant is this skill to the Target Role?
-  2. Evidence Confidence (0.0 - 1.0): Did they actually prove this skill in their Portfolio Evidence? (0.0 if missing, 1.0 if deep proof).
-  3. Skill Decay Penalty (0-100): Is the evidence old? (0 if recent, 50+ if > 2 years old).
-  
-  The formula is: Final Score = (0.3 * Claim Relevance) + (0.6 * (Evidence Confidence * 100)) - (0.1 * Skill Decay Penalty)
-  
-  Output the results in strict JSON.`;
+  Output the results in strict JSON matching the schema.`;
 
   const response = await ai.models.generateContent({
-    model: "gemini-3.7-flash",
+    model: "gemini-3.8-flash", // using the model version seen in your server.ts
     contents: prompt,
     config: {
       responseMimeType: "application/json",
@@ -83,5 +130,10 @@ export async function calculateEWRS(resumeJSON: any, portfolioJSON: any, targetR
     }
   });
 
-  return JSON.parse(response.text || "{}") as EWRSReport;
+  const report = JSON.parse(response.text || "{}") as EWRSReport;
+  
+  // Ensure the AI doesn't hallucinate the overall score
+  report.overall_ewrs = overallScore;
+  
+  return report;
 }
