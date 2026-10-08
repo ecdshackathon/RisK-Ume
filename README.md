@@ -447,9 +447,12 @@ The entire idea of Risk-Ume can be summarized as:
 
 ---
 
-# Author
-
+# Authors
+## Swayam Sreetam Das
 ## Divyansh Bhardwaj
+## CHRIS SANJIV JOSEPH
+## ARYA SAHU
+
 
 First-year engineering student exploring:
 
