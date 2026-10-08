@@ -1,6 +1,5 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export interface EvidenceScore {
   skill: string;
@@ -87,47 +86,57 @@ export async function calculateEWRS(resumeJSON: any, portfolioJSON: any, targetR
   
   Output the results in strict JSON matching the schema.`;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3.8-flash", // using the model version seen in your server.ts
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          overall_ewrs: { type: Type.NUMBER },
-          verified_skills: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                skill: { type: Type.STRING },
-                claim_relevance: { type: Type.NUMBER },
-                evidence_confidence: { type: Type.NUMBER },
-                skill_decay_penalty: { type: Type.NUMBER },
-                final_ewrs_score: { type: Type.NUMBER },
-                reason: { type: Type.STRING }
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "google/gemini-2.5-pro",
+      response_format: { type: "json_object" },
+      messages: [{
+        role: "user",
+        content: prompt + "\n\nIMPORTANT: Return ONLY a raw, valid JSON object matching this exact schema:\n" + JSON.stringify({
+          type: Type.OBJECT,
+          properties: {
+            overall_ewrs: { type: Type.NUMBER },
+            verified_skills: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  skill: { type: Type.STRING },
+                  claim_relevance: { type: Type.NUMBER },
+                  evidence_confidence: { type: Type.NUMBER },
+                  skill_decay_penalty: { type: Type.NUMBER },
+                  final_ewrs_score: { type: Type.NUMBER },
+                  reason: { type: Type.STRING }
+                }
               }
-            }
-          },
-          unverified_skills: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                skill: { type: Type.STRING },
-                claim_relevance: { type: Type.NUMBER },
-                evidence_confidence: { type: Type.NUMBER },
-                skill_decay_penalty: { type: Type.NUMBER },
-                final_ewrs_score: { type: Type.NUMBER },
-                reason: { type: Type.STRING }
+            },
+            unverified_skills: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  skill: { type: Type.STRING },
+                  claim_relevance: { type: Type.NUMBER },
+                  evidence_confidence: { type: Type.NUMBER },
+                  skill_decay_penalty: { type: Type.NUMBER },
+                  final_ewrs_score: { type: Type.NUMBER },
+                  reason: { type: Type.STRING }
+                }
               }
-            }
-          },
-          roadmap_recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }
-        }
-      }
-    }
+            },
+            roadmap_recommendations: { type: Type.ARRAY, items: { type: Type.STRING } }
+          }
+        })
+      }]
+    })
+  }).then(res => res.json()).then(data => {
+    if (data.error) throw new Error(data.error.message);
+    return { text: data.choices?.[0]?.message?.content || "{}" };
   });
 
   const report = JSON.parse(response.text || "{}") as EWRSReport;

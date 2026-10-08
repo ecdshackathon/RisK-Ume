@@ -262,7 +262,7 @@ async function startServer() {
     next();
 
   };
-  const PORT = process.env.PORT || 3000;
+  const PORT = Number(process.env.PORT || 3000);
 
   app.use(express.json());
   app.post("/api/resume/parse", authenticateToken, async (req: any, res: any) => {

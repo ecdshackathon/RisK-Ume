@@ -1,7 +1,6 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { Type } from "@google/genai";
 import { RiskProfile, RiskScores } from "./riskEngine";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export interface AIAnalysis {
   summary: string;
@@ -50,12 +49,18 @@ export async function parseResumeToJSON(resumeText: string) {
   `;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-pro",
+        response_format: { type: "json_object" },
+        messages: [{
+          role: "user",
+          content: prompt + "\n\nIMPORTANT: Return ONLY a raw, valid JSON object matching this exact schema:\n" + JSON.stringify({
           type: Type.OBJECT,
           properties: {
             personal: {
@@ -114,8 +119,12 @@ export async function parseResumeToJSON(resumeText: string) {
               items: { type: Type.STRING }
             }
           }
-        }
-      }
+        })
+        }]
+      })
+    }).then(res => res.json()).then(data => {
+      if (data.error) throw new Error(data.error.message);
+      return { text: data.choices?.[0]?.message?.content || "{}" };
     });
 
     return JSON.parse(response.text || '{}');
@@ -181,12 +190,18 @@ export async function generateHeatmap(resumeText: string): Promise<HeatmapLine[]
   `;
 
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-pro",
+        response_format: { type: "json_object" },
+        messages: [{
+          role: "user",
+          content: prompt + "\n\nIMPORTANT: Return ONLY a raw, valid JSON object matching this exact schema:\n" + JSON.stringify({
           type: Type.ARRAY,
           items: {
             type: Type.OBJECT,
@@ -196,8 +211,12 @@ export async function generateHeatmap(resumeText: string): Promise<HeatmapLine[]
               color: { type: Type.STRING, enum: ['green', 'yellow', 'red'] }
             }
           }
-        }
-      }
+        })
+        }]
+      })
+    }).then(res => res.json()).then(data => {
+      if (data.error) throw new Error(data.error.message);
+      return { text: data.choices?.[0]?.message?.content || "{}" };
     });
 
     return JSON.parse(response.text || '[]');
@@ -245,12 +264,18 @@ export async function analyzeATS(resumeText: string, jobDescription: string): Pr
   Provide your analysis in JSON format.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-pro",
+        response_format: { type: "json_object" },
+        messages: [{
+          role: "user",
+          content: prompt + "\n\nIMPORTANT: Return ONLY a raw, valid JSON object matching this exact schema:\n" + JSON.stringify({
           type: Type.OBJECT,
           properties: {
             score_before: { type: Type.NUMBER },
@@ -336,8 +361,12 @@ export async function analyzeATS(resumeText: string, jobDescription: string): Pr
               "multi_role_conflict", "hiring_manager_profile", "add_lines", "remove_lines", 
               "rewrite_lines", "impact_prediction"
             ]
-        }
-      }
+        })
+        }]
+      })
+    }).then(res => res.json()).then(data => {
+      if (data.error) throw new Error(data.error.message);
+      return { text: data.choices?.[0]?.message?.content || "{}" };
     });
 
     if (!response.text) {
@@ -410,12 +439,18 @@ RISK SCORES (0-100, higher = more risk):
 Provide your analysis in JSON format. Be specific, data-driven, and constructive.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-pro",
+        response_format: { type: "json_object" },
+        messages: [{
+          role: "user",
+          content: prompt + "\n\nIMPORTANT: Return ONLY a raw, valid JSON object matching this exact schema:\n" + JSON.stringify({
           type: Type.OBJECT,
           properties: {
             summary: { type: Type.STRING, description: "2-3 sentence overview of risk level and primary drivers" },
@@ -436,8 +471,12 @@ Provide your analysis in JSON format. Be specific, data-driven, and constructive
             }
           },
           required: ["summary", "top_risk_factors", "recommendations", "career_pivots", "skill_priorities"]
-        }
-      }
+        })
+        }]
+      })
+    }).then(res => res.json()).then(data => {
+      if (data.error) throw new Error(data.error.message);
+      return { text: data.choices?.[0]?.message?.content || "{}" };
     });
 
     if (!response.text) {
