@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { generateOptimizedResume } from '@/lib/docxGenerator';
 import { useAuth } from '@/lib/auth';
 
-export function ATSOptimizer({ onNavigate }: { onNavigate?: (tab: 'dashboard' | 'risk' | 'ats' | 'builder' | 'history' | 'pricing' | 'settings') => void }) {
+export function ATSOptimizer({ onNavigate }: { onNavigate?: (tab: 'dashboard' | 'risk' | 'ats' | 'builder' | 'history' | 'settings') => void }) {
   const { token } = useAuth();
   const [resumeText, setResumeText] = useState('');
   const [jobDescription, setJobDescription] = useState('');
