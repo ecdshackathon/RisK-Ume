@@ -346,8 +346,8 @@ async function startServer() {
     const { resume_text, job_description } = req.body;
 
     try {
-      const { analyzeATSServer } = await import('./src/lib/atsEngine.ts');
-      const result = await analyzeATSServer(resume_text, job_description);
+      const { analyzeATS } = await import('./src/lib/gemini.ts');
+      const result = await analyzeATS(resume_text, job_description);
       const id = crypto.randomUUID();
 
       // Save to backend (ignoring errors to prevent crash if DB fails)

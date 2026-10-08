@@ -11,9 +11,9 @@ export function DashboardTab({ onNavigate }: { onNavigate: (tab: 'risk' | 'ats')
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const [ewrsData, setEwrsData] = useState<EWRSReport | null>(null);
+  const [ewrsData, setEwrsData] = useState<any | null>(null);
 
-  const [resumes, setResumes] = useState<ResumeFile[]>([]);
+  const [resumes, setResumes] = useState<any[]>([]);
   const [resumesLoading, setResumesLoading] = useState(true);
   const [resumesError, setResumesError] = useState<string | null>(null);
   const [showAlgorithm, setShowAlgorithm] = useState(false);
