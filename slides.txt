@@ -1,0 +1,124 @@
+DATAQUEST 3.0
+ROUND 1
+OFFICIAL PARTICIPANT PPT TEMPLATE
+PROJECT DETAILS
+PROJECT TITLE
+ Risk-Ume
+ONE-LINE PITCH
+Resume Risk analyzer for U and me
+TRACK
+ AI/Employability
+TEAM & MEMBERS
+TEAM
+Latewinners
+PARTICIPANTS
+•  SWAYAM SREETAM DAS - 26BDS1271
+•  CHRIS SANJIV JOSEPH - 26BDS1270
+•  DIVYANSH BHARADWAJ - 26BDS1264
+•  ARYA SAHU - 26BDS1269
+
+DATAQUEST 3.0  ·  ROUND 1
+02  Problem Definition
+Who is impacted · Today's workarounds · Why current methods fail · Concrete proof
+01 · AUDIENCE
+WHO & HOW OFTEN
+Final Year students.
+
+02 · STATUS QUO
+CURRENT APPROACH
+[ How is the problem handled today?Describe manual workflows, legacy tools, or workarounds currently relied upon. ]
+03 · DEFICIENCY
+WHY IT FALLS SHORT
+[ What is wrong with the current approach?Explain the bottleneck: excessive cost, latency, error rate, or poor scaling. ]
+04 · VALIDATION
+EVIDENCE
+[ Data, research, observation, quote or source proving the problem exists.Cite measurable benchmarks or primary findings. ]
+
+DATAQUEST 3.0  ·  ROUND 1
+03  Proposed Solution
+System identity · End-to-end user workflow · Competitive advantages
+SOLUTION CORE
+[ PRODUCT / SYSTEM NAME ]
+[ 1–2 sentence explanation describing what your solution does, how it operates, and why it effectively solves the core problem. ]
+USER FLOW
+1. USER INPUT
+[ What the user submits or system ingests ]
+➔
+2. PROCESSING
+[ Core engine, algorithm, or model handling ]
+➔
+3. OUTPUT
+[ What the user receives or outcome produced ]
+ADVANTAGE
+WHY IT IS BETTER
+[ Explain the key improvement over current methods.Quantify speed, accuracy, accessibility, or reduction in manual effort. ]
+INNOVATION
+WHAT IS DIFFERENT
+[ Explain the core innovation.What unique algorithmic, architectural, or user experience choice sets this completely apart? ]
+
+DATAQUEST 3.0  ·  ROUND 1
+04  System Architecture
+System diagram is the primary visual · Engineering decisions · Validation
+SYSTEM DIAGRAM
+[ INSERT YOUR ACTUAL ARCHITECTURE DIAGRAM HERE ]
+Replace this box with your actual block diagram, component flowchart, pipeline, or cloud topology
+TECH 01
+KEY TECHNICAL DECISION
+[ Decision + reason: Why this specific stack, framework, model, or protocol was selected over alternatives. ]
+TECH 02
+HARDEST PART
+[ What was difficult to build and how you solved it. The toughest technical obstacle encountered. ]
+TECH 03
+VALIDATION
+[ How you tested the system. Latency benchmarks, test suites, offline evaluation, or stress tests. ]
+
+DATAQUEST 3.0  ·  ROUND 1
+05  Feasibility & Scope
+Concrete boundaries · Operational run rate · Risk mitigation · Post-hackathon plans
+01 · BOUNDARIES
+1. SCOPE
+In: [ What is included and functional in this prototype ]Out: [ What is explicitly out of scope for Round 1 ]
+02 · ECONOMICS
+2. RUNNING COST
+[ Compute / APIs / hardware / storage / database costs.Include unit economics or estimated monthly cloud expenditure. ]
+03 · CONTINGENCY
+3. RISKS & FALLBACK
+[ What could fail + concrete fallback.Identify critical failure mode (API limits, data drift, hardware) and mitigation. ]
+04 · HORIZON
+4. AFTER THE HACKATHON
+[ Future roadmap: Immediate next features, production hardening, deployment architecture, and expansion plan. ]
+
+DATAQUEST 3.0  ·  ROUND 1
+06  Impact & Metrics
+Primary measurable impact · Transparent calculation · Stakeholder advantages
+PRIMARY METRIC
+[ XX% ]
+[ One important measurable impact metric ]
+HOW IT WAS MEASURED
+[ Explain briefly: Show your working clearly.Cite the benchmark dataset, test scenario, or calculation used to derive this metric. ]
+IMPACT 01
+WHAT IMPROVES
+[ Concrete before/after improvement.Detail the exact measurable delta experienced by your primary user. ]
+IMPACT 02
+WHO ELSE BENEFITS
+[ Other beneficiaries beyond primary users.Secondary stakeholders, industries, or community impact. ]
+IMPACT 03
+RISKS / MISUSE
+[ What could go wrong or be misused + mitigation.Anticipate edge-case harms, vulnerability, or failure modes. ]
+
+DATAQUEST 3.0  ·  ROUND 1
+07  Why This Project?
+Direct contrast with today's alternatives · Unfair technical advantage
+STATUS QUO
+CURRENT APPROACH
+[ Short description: How does the world handle this problem today?Explain why existing tools, manual workarounds, or competitor products fall short, cost too much, or fail under stress. ]
+OUR SOLUTION
+OUR APPROACH
+[ Short description: How does your solution solve this differently?Explain your concrete technical approach and why it delivers a superior experience, faster execution, or lower cost. ]
+MOAT / DIFFERENTIATION
+KEY DIFFERENCE
+[ One strong statement explaining why this solution is genuinely different from everything else. Avoid generic buzzwords like 'AI-powered' or 'user-friendly' — cite your specific innovation. ]
+
+DATAQUEST 3.0  ·  ROUND 1
+08  Extra Slide
+Optional appendix · Extra diagrams, product screenshots, benchmarks, or backup details
