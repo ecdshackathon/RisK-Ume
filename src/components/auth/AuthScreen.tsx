@@ -5,8 +5,10 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShieldAlert, Loader2 } from 'lucide-react';
 import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@/lib/auth';
 
 export function AuthScreen() {
+  const { loginAsGuest } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -302,6 +304,17 @@ export function AuthScreen() {
                   )}
                   {googleLoading ? 'Signing in with Google...' : 'Sign in with Google'}
                 </Button>
+
+                <div className="mt-3">
+                  <Button
+                    variant="secondary"
+                    className="w-full text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200"
+                    type="button"
+                    onClick={loginAsGuest}
+                  >
+                    Continue as Guest (Explore App)
+                  </Button>
+                </div>
               </div>
             </div>
 

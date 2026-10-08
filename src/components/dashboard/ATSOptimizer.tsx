@@ -8,55 +8,14 @@ import { JobDescriptionInput } from './JobDescriptionInput';
 import { ATSScoreMeter } from './ATSScoreMeter';
 import { GapAnalysisCard } from './GapAnalysisCard';
 import { ResumeDiffViewer } from './ResumeDiffViewer';
-// removed IntelligencePanel import
-import { AdvancedATSReport } from './AdvancedATSReport';
+import { IntelligencePanel } from './IntelligencePanel';
 import { motion, AnimatePresence } from 'motion/react';
 import { generateOptimizedResume } from '@/lib/docxGenerator';
 import { useAuth } from '@/lib/auth';
 
-function normalizeATSResponse(raw: any): ATSAnalysis {
-  return {
-    ...raw,
-    score_before: typeof raw.score_before === 'number' ? raw.score_before : 50,
-    score_after: typeof raw.score_after === 'number' ? raw.score_after : 50,
-    score_breakdown: raw.score_breakdown || {
-      keyword_match: 0,
-      hard_skill_match: 0,
-      experience_relevance: 0,
-      role_alignment: 0,
-      ats_parsability: 0,
-      quantified_impact: 0
-    },
-    top_improvements: Array.isArray(raw.top_improvements) ? raw.top_improvements : [],
-    resume_jd_match: raw.resume_jd_match || { strong_matches: [], partial_matches: [], missing_requirements: [], low_relevance_content: [] },
-    keyword_coverage: raw.keyword_coverage || { technical_skills: [], industry_terms: [], action_verbs: [], role_terms: [] },
-    section_analysis: Array.isArray(raw.section_analysis) ? raw.section_analysis : [],
-    smart_rewrites: Array.isArray(raw.smart_rewrites) ? raw.smart_rewrites : [],
-    quantification_opportunities: Array.isArray(raw.quantification_opportunities) ? raw.quantification_opportunities : [],
-    formatting_checks: Array.isArray(raw.formatting_checks) ? raw.formatting_checks : [],
-    semantic_alignment: raw.semantic_alignment || { target_role: "General", alignment_percentage: 0, strong_alignment: [], weak_alignment: [], missing_concepts: [] },
-    missing_skills: Array.isArray(raw.missing_skills) ? raw.missing_skills : [],
-    missing_keywords: Array.isArray(raw.missing_keywords) ? raw.missing_keywords : [],
-    hard_skills: Array.isArray(raw.hard_skills) ? raw.hard_skills : [],
-    soft_skills: Array.isArray(raw.soft_skills) ? raw.soft_skills : [],
-    add_lines: Array.isArray(raw.add_lines) ? raw.add_lines : [],
-    remove_lines: Array.isArray(raw.remove_lines) ? raw.remove_lines : [],
-    rewrite_lines: Array.isArray(raw.rewrite_lines) ? raw.rewrite_lines : [],
-  } as ATSAnalysis;
-}
-
-export function ATSOptimizer({ onNavigate }: { onNavigate?: (tab: any) => void }) {
+export function ATSOptimizer({ onNavigate }: { onNavigate?: (tab: 'dashboard' | 'risk' | 'ats' | 'builder' | 'history' | 'pricing' | 'settings') => void }) {
   const { token } = useAuth();
-  const [resumeText, setResumeText] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('ats_resume_text');
-      if (saved) {
-        localStorage.removeItem('ats_resume_text');
-        return saved;
-      }
-    }
-    return '';
-  });
+  const [resumeText, setResumeText] = useState('');
   const [jobDescription, setJobDescription] = useState('');
   const [analysis, setAnalysis] = useState<ATSAnalysis | null>(null);
   const [loading, setLoading] = useState(false);
@@ -71,25 +30,50 @@ export function ATSOptimizer({ onNavigate }: { onNavigate?: (tab: any) => void }
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/ats/analyze', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          resume_text: resumeText,
-          job_description: jobDescription
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to analyze resume.');
-      }
-      
-      const result = await response.json();
-      setAnalysis(normalizeATSResponse(result));
+      const result = await analyzeATS(resumeText, jobDescription);
+      setAnalysis(result);
 
+      // Attempt saving to backend
+      if (token) {
+        try {
+          const assessmentId = crypto.randomUUID();
+          const recommendations = [
+            ...result.add_lines.map(l => ({ id: crypto.randomUUID(), type: 'add', content: l.content, impact_score: parseFloat(l.impact) || 0 })),
+            ...result.remove_lines.map(l => ({ id: crypto.randomUUID(), type: 'remove', content: l.content, impact_score: 0 })),
+            ...result.rewrite_lines.map(l => ({ id: crypto.randomUUID(), type: 'rewrite', content: `${l.before} -> ${l.after}`, impact_score: 0 }))
+          ];
+
+          await fetch('/api/ats/analyze', {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              id: assessmentId,
+              resume_text: resumeText,
+              job_description: jobDescription,
+              score_before: result.score_before,
+              score_after: result.score_after,
+              match_level: result.match_level,
+              resume_health: result.resume_health,
+              interview_prob_before: result.interview_prob_before,
+              interview_prob_after: result.interview_prob_after,
+              formatting_score: result.formatting_score,
+              quantified_achievements_score: result.quantified_achievements_score,
+              grammar_tone_score: result.grammar_tone_score,
+              salary_readiness_score: result.salary_readiness_score,
+              salary_band_estimate: result.salary_band_estimate,
+              career_gap_risk: result.career_gap_risk,
+              culture_fit_score: result.culture_fit_score,
+              multi_role_conflict: result.multi_role_conflict,
+              recommendations
+            })
+          });
+        } catch (saveErr) {
+          console.warn("Could not save analysis to backend:", saveErr);
+        }
+      }
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Failed to analyze resume. Please try again.');
@@ -177,16 +161,7 @@ export function ATSOptimizer({ onNavigate }: { onNavigate?: (tab: any) => void }
             className="space-y-8"
           >
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <h2 className="text-2xl font-bold text-gray-900">Analysis Results</h2>
-                {(analysis as any).analysis_provider && (
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded font-medium border border-gray-200">
-                    {(analysis as any).analysis_provider === 'gemini' ? 'AI Analysis' : 
-                     (analysis as any).analysis_provider === 'cache' ? 'Cached Analysis' : 
-                     (analysis as any).analysis_provider === 'local_fallback' ? 'Local Fallback' : 'Local Analysis'}
-                  </span>
-                )}
-              </div>
+              <h2 className="text-2xl font-bold text-gray-900">Analysis Results</h2>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleReset}>New Analysis</Button>
                 {onNavigate && (
@@ -231,29 +206,40 @@ export function ATSOptimizer({ onNavigate }: { onNavigate?: (tab: any) => void }
                     </div>
                   </CardContent>
                 </Card>
+
+                <Card className="border-0 shadow-md">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Impact Prediction</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Visibility Increase</p>
+                      <p className="text-sm font-medium text-gray-900">{analysis.impact_prediction.visibility_increase}</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Key Improvement</p>
+                      <p className="text-sm font-medium text-gray-900">{analysis.impact_prediction.key_improvement}</p>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Detailed Analysis */}
               <div className="lg:col-span-2 space-y-8">
-                <AdvancedATSReport analysis={analysis} />
+                <IntelligencePanel analysis={analysis} />
+
+                <GapAnalysisCard 
+                  missingSkills={analysis.missing_skills} 
+                  missingKeywords={analysis.missing_keywords} 
+                  hardSkills={analysis.hard_skills}
+                  softSkills={analysis.soft_skills}
+                />
                 
-                <div className="pt-12 mt-12 border-t border-gray-200">
-                  <h3 className="text-xl font-bold text-gray-400 mb-6 uppercase tracking-wider">Advanced Analysis & Legacy Metrics</h3>
-                  <div className="space-y-8 opacity-80">
-                    <GapAnalysisCard 
-                      missingSkills={analysis.missing_skills} 
-                      missingKeywords={analysis.missing_keywords} 
-                      hardSkills={analysis.hard_skills}
-                      softSkills={analysis.soft_skills}
-                    />
-                    
-                    <ResumeDiffViewer 
-                      addLines={analysis.add_lines}
-                      removeLines={analysis.remove_lines}
-                      rewriteLines={analysis.rewrite_lines}
-                    />
-                  </div>
-                </div>
+                <ResumeDiffViewer 
+                  addLines={analysis.add_lines}
+                  removeLines={analysis.remove_lines}
+                  rewriteLines={analysis.rewrite_lines}
+                />
               </div>
             </div>
           </motion.div>

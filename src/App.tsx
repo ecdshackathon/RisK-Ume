@@ -8,7 +8,7 @@ import { AIAnalysis } from '@/components/dashboard/AIAnalysis';
 import { ATSOptimizer } from '@/components/dashboard/ATSOptimizer';
 import { HistoryTab } from '@/components/dashboard/HistoryTab';
 import { DashboardTab } from '@/components/dashboard/DashboardTab';
-import { PlacementDashboard } from '@/components/dashboard/PlacementDashboard';
+import { PricingTab } from '@/components/dashboard/PricingTab';
 import { ResumeBuilder } from '@/components/dashboard/ResumeBuilder';
 import { AuthScreen } from '@/components/auth/AuthScreen';
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
@@ -23,13 +23,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User as UserIcon, Loader2, ShieldAlert, RefreshCw, LayoutDashboard, Target, History, Settings, LogOut, CreditCard, FileText, Navigation, Linkedin, Code2, Building2 } from 'lucide-react';
+import { User as UserIcon, Loader2, ShieldAlert, RefreshCw, LayoutDashboard, Target, History, Settings, LogOut, CreditCard, FileText, Navigation, Linkedin, Code2 } from 'lucide-react';
 
 const supabase = createClient();
 
 export function MainApp() {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'risk' | 'ats' | 'builder' | 'history' | 'settings' | 'career-path' | 'profile' | 'linkedin' | 'developer-activity' | 'placement'>('profile');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'risk' | 'ats' | 'builder' | 'history' | 'pricing' | 'settings' | 'career-path' | 'profile' | 'linkedin' | 'developer-activity'>('profile');
   const [profile, setProfile] = useState<RiskProfile>({
     industry: '',
     role: '',
@@ -124,13 +124,6 @@ export function MainApp() {
                 Dashboard
               </button>
               <button 
-                onClick={() => setActiveTab('placement')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${activeTab === 'placement' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}
-              >
-                <Building2 className="w-4 h-4" />
-                Placement Cell
-              </button>
-              <button 
                 onClick={() => setActiveTab('risk')}
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${activeTab === 'risk' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}
               >
@@ -171,6 +164,13 @@ export function MainApp() {
               >
                 <History className="w-4 h-4" />
                 History
+              </button>
+              <button 
+                onClick={() => setActiveTab('pricing')}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${activeTab === 'pricing' ? 'bg-indigo-50 text-indigo-600' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}
+              >
+                <CreditCard className="w-4 h-4" />
+                Pricing
               </button>
             </nav>
           </div>
@@ -346,14 +346,14 @@ export function MainApp() {
               </div>
             </div>
           )
-        ) : activeTab === 'placement' ? (
-          <PlacementDashboard />
         ) : activeTab === 'ats' ? (
           <ATSOptimizer onNavigate={setActiveTab} />
         ) : activeTab === 'builder' ? (
           <ResumeBuilder />
         ) : activeTab === 'history' ? (
           <HistoryTab />
+        ) : activeTab === 'pricing' ? (
+          <PricingTab />
         ) : activeTab === 'career-path' ? (
           <CareerPath onNavigate={setActiveTab as any} />
         ) : activeTab === 'profile' ? (
@@ -383,9 +383,12 @@ export default function App() {
   useEffect(() => {
     if (user && session) {
       supabase.from('career_profiles').select('onboarding_completed').eq('user_id', user.id).single()
-      .then(({ data }) => setOnboardingCompleted(data?.onboarding_completed || false))
-      ;// Ignore error
-
+      .then(
+        ({ data }) => setOnboardingCompleted(data?.onboarding_completed || false),
+        () => setOnboardingCompleted(true)
+      );
+    } else if (user) {
+      setOnboardingCompleted(true);
     }
   }, [user, session]);
 

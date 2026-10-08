@@ -17,6 +17,7 @@ interface AuthContextType {
   token: string | null;
   session: Session | null;
   logout: () => Promise<void>;
+  loginAsGuest: () => void;
   loading: boolean;
 }
 
@@ -80,12 +81,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const loginAsGuest = () => {
+    setUser({
+      id: 'demo-guest-user',
+      name: 'Demo Candidate',
+      email: 'candidate@risk-ume.io',
+      subscription_tier: 'pro',
+      avatar_url: '',
+    });
+  };
+
   const logout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      // ignore
+    }
+    setUser(null);
+    setSession(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, token: session?.access_token || null, logout, loading }}>
+    <AuthContext.Provider value={{ user, session, token: session?.access_token || null, logout, loginAsGuest, loading }}>
       {children}
     </AuthContext.Provider>
   );

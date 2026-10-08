@@ -71,15 +71,18 @@ export async function generateLinkedInAudit(profileData: any, targetRole: string
   await new Promise(resolve => setTimeout(resolve, 2500));
 
   return {
-    overall_score: 87,
-    categories: {
-      headline: 18,
-      about: 16,
-      experience: 22,
-      skills: 18,
-      keywords: 13
-    },
-    issues: [
+    total_score: 87,
+    headline_score: 18,
+    about_score: 16,
+    experience_score: 22,
+    skills_score: 18,
+    keywords_score: 13,
+    strengths: [
+      "Excellent display of technical keywords across multiple projects.",
+      "Clear trajectory of growth in your experience section.",
+      "Good integration of modern AI tools in your skill stack."
+    ],
+    weaknesses: [
       "About section lacks quantifiable business metrics.",
       "Headline doesn't fully capture your cloud architecture experience."
     ],

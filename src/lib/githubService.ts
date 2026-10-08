@@ -63,7 +63,6 @@ export async function fetchGitHubData(username: string, customToken?: string): P
       createdAt: r.created_at,
       pushedAt: r.pushed_at,
       hasReadme: true,
-      defaultBranch: r.default_branch || 'main',
     }));
 
     // 3. Fetch User Public Events (covers recent pushes, commits, PRs, issues in last 90 days)
@@ -201,52 +200,4 @@ export function getSimulatedGitHubData(username: string): {
     rateLimitRemaining: 50,
     isMock: true,
   };
-}
-
-export async function getRepositoryTree(owner: string, repo: string, branch: string = 'main', customToken?: string): Promise<string[]> {
-  const headers: Record<string, string> = {
-    'Accept': 'application/vnd.github.v3+json',
-    'User-Agent': 'Risk-Ume-Activity-Analyzer',
-  };
-  const token = customToken || process.env.GITHUB_TOKEN;
-  if (token && token.trim()) {
-    headers['Authorization'] = `token ${token.trim()}`;
-  }
-
-  try {
-    const res = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/trees/${encodeURIComponent(branch)}?recursive=1`, { headers });
-    if (!res.ok) {
-      console.warn(`Could not fetch tree for ${owner}/${repo}@${branch}: ${res.statusText}`);
-      return [];
-    }
-    const data = await res.json();
-    if (data && data.tree && Array.isArray(data.tree)) {
-      return data.tree.map((t: any) => t.path);
-    }
-    return [];
-  } catch (e: any) {
-    console.warn(`Error fetching tree for ${owner}/${repo}: ${e.message}`);
-    return [];
-  }
-}
-
-export async function getRepositoryFile(owner: string, repo: string, path: string, customToken?: string): Promise<string | null> {
-  const headers: Record<string, string> = {
-    'Accept': 'application/vnd.github.v3.raw', // Get raw content
-    'User-Agent': 'Risk-Ume-Activity-Analyzer',
-  };
-  const token = customToken || process.env.GITHUB_TOKEN;
-  if (token && token.trim()) {
-    headers['Authorization'] = `token ${token.trim()}`;
-  }
-
-  try {
-    const res = await fetch(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(path)}`, { headers });
-    if (!res.ok) return null;
-    const content = await res.text();
-    return content;
-  } catch (e: any) {
-    console.warn(`Error fetching file ${path} for ${owner}/${repo}: ${e.message}`);
-    return null;
-  }
 }

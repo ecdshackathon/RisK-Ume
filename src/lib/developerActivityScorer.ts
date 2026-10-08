@@ -10,7 +10,6 @@ export interface GitHubRepoSummary {
   createdAt: string;
   pushedAt: string;
   hasReadme?: boolean;
-  defaultBranch?: string;
 }
 
 export interface MonthlyCommitData {
