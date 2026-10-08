@@ -614,23 +614,18 @@ async function startServer() {
         .single();
 
       // Fetch GitHub data if linked
-      const { data: githubProfile } = await req.supabase
-        .from('github_activity')
-        .select('github_username')
-        .eq('user_id', req.user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      let githubData = null;
-      if (githubProfile && githubProfile.github_username) {
-        const { fetchGitHubData } = await import('./src/lib/githubService.ts');
-        try {
-          githubData = await fetchGitHubData(githubProfile.github_username);
-        } catch (e) {
-          console.warn("Failed to fetch GitHub data for readiness:", e);
-        }
+      let githubProfile = null;
+      if (careerProf?.github_username) {
+        const { data } = await req.supabase
+          .from('github_activity')
+          .select('github_username, overall_score')
+          .eq('user_id', req.user.id)
+          .eq('github_username', careerProf.github_username)
+          .single();
+        githubProfile = data;
       }
+
+
 
       const portfolioData = linkedinProf || { projects: [], experiences: [] };
       const resumeData = careerProf?.extracted_profile || { skills: [], work: [] };
@@ -676,12 +671,7 @@ async function startServer() {
         ? Math.round(allSkills.reduce((acc: number, s: any) => acc + s.final_ewrs_score, 0) / allSkills.length)
         : 88;
 
-      let developerActivityScore = null;
-      if (githubData && !githubData.isMock && (githubData.repos?.length > 0 || githubData.events?.length > 0)) {
-        const { calculateDeveloperActivityScore } = await import('./src/lib/developerActivityScorer.ts');
-        const activityReport = calculateDeveloperActivityScore(githubData.repos, githubData.events, githubData.userProfile);
-        developerActivityScore = activityReport.overallScore;
-      }
+      let developerActivityScore = githubProfile?.overall_score ?? null;
 
       res.json({
         ...report,

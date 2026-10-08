@@ -13,13 +13,19 @@ export async function fetchGitHubData(username: string, customToken?: string): P
 }> {
   const cleanUsername = username.trim().replace(/^@/, '');
   const headers: Record<string, string> = {
-    'Accept': 'application/vnd.github.v3+json',
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
     'User-Agent': 'Risk-Ume-Activity-Analyzer',
   };
 
   const token = customToken || process.env.GITHUB_TOKEN;
   if (token && token.trim()) {
-    headers['Authorization'] = `token ${token.trim()}`;
+    headers['Authorization'] = `Bearer ${token.trim()}`;
+  }
+
+  // Intercept intentional demo accounts to always use simulated data
+  if (['shadcn', 'facebook', 'student-demo'].includes(cleanUsername.toLowerCase())) {
+    return getSimulatedGitHubData(cleanUsername);
   }
 
   try {
@@ -27,15 +33,25 @@ export async function fetchGitHubData(username: string, customToken?: string): P
     const userRes = await fetch(`https://api.github.com/users/${encodeURIComponent(cleanUsername)}`, { headers });
     
     // Check for rate limit or not found
+    const rateLimitLimit = userRes.headers.get('x-ratelimit-limit');
     const rateLimitRemaining = Number(userRes.headers.get('x-ratelimit-remaining') || '60');
+    const rateLimitReset = userRes.headers.get('x-ratelimit-reset');
+
+    console.log(`\n[GITHUB RATE LIMIT DEBUG]
+X-RateLimit-Limit: ${rateLimitLimit}
+X-RateLimit-Remaining: ${rateLimitRemaining}
+X-RateLimit-Reset: ${rateLimitReset}\n`);
     
     if (userRes.status === 404) {
-      throw new Error(`GitHub user "${cleanUsername}" was not found.`);
+      throw new Error(`GitHub user not found.`);
+    }
+    
+    if (userRes.status === 401) {
+      throw new Error(`GitHub Personal Access Token is invalid or expired.`);
     }
 
-    if (userRes.status === 403) {
-      console.warn(`GitHub rate limit hit for ${cleanUsername}. Using intelligent fallback.`);
-      return getSimulatedGitHubData(cleanUsername);
+    if (userRes.status === 403 || userRes.status === 429) {
+      throw new Error(`GitHub API rate limit exceeded. Check your Personal Access Token or try again later.`);
     }
 
     if (!userRes.ok) {
@@ -83,11 +99,10 @@ export async function fetchGitHubData(username: string, customToken?: string): P
       isMock: false,
     };
   } catch (err: any) {
-    if (err.message.includes('not found')) {
+    if (err.message.includes('not found') || err.message.includes('rate limit')) {
       throw err;
     }
-    console.warn(`Error fetching real GitHub data: ${err.message}. Providing simulated fallback analysis.`);
-    return getSimulatedGitHubData(cleanUsername);
+    throw new Error(`Failed to fetch GitHub data: ${err.message}`);
   }
 }
 
